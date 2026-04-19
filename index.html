@@ -31,7 +31,8 @@
         html,
         body {
             margin: 0;
-            background-color: #FFFFFF;
+            background: transparent !important;
+            background-color: transparent !important;
             color: var(--text);
             overflow: hidden;
             font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -375,9 +376,16 @@
                 gap: 16px;
             }
 
-            .top-row,
+            .top-row {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
 
-            .metrics,
+            .metrics {
+                align-items: flex-start;
+                justify-self: start;
+                text-align: left;
+            }
         }
     </style>
 </head>

@@ -179,10 +179,9 @@
 
         .main-panel {
             position: relative;
-            padding: 20px 22px 18px 22px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            padding: 20px 22px 20px 22px;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
             gap: 16px;
         }
 
@@ -247,7 +246,9 @@
 
         .track-wrap {
             position: relative;
-            padding-top: 4px;
+            padding-top: 0;
+            margin-top: auto;
+            align-self: end;
         }
 
         .progress-track {
@@ -300,102 +301,6 @@
 
         .progress-markers span:first-child {
             justify-self: start;
-        }
-
-        .bottom-row {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .train-chip {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.07);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-            min-width: 72px;
-        }
-
-        .train-icon {
-            width: 26px;
-            height: 26px;
-            filter: drop-shadow(0 0 12px rgba(255, 73, 198, 0.38));
-            animation: bob 1.8s ease-in-out infinite;
-        }
-
-        .train-chip::after {
-            content: "";
-            position: absolute;
-            right: -12px;
-            top: 50%;
-            width: 26px;
-            height: 10px;
-            transform: translateY(-50%);
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.1) 55%, transparent 72%);
-            filter: blur(4px);
-            opacity: 0.85;
-            animation: steam 2.2s ease-out infinite;
-        }
-
-        .facts {
-            min-width: 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px 14px;
-            align-items: center;
-        }
-
-        .fact {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 13px;
-            line-height: 1;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-            white-space: nowrap;
-        }
-
-        .fact strong {
-            font-size: 14px;
-            color: #fff;
-        }
-
-        .caption {
-            color: var(--soft);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .mini-note {
-            justify-self: end;
-            text-align: right;
-        }
-
-        .mini-note .value {
-            display: block;
-            font-weight: 800;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .mini-note .label {
-            display: block;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--soft);
         }
 
         .widget.cooldown .progress-fill,
@@ -471,17 +376,8 @@
             }
 
             .top-row,
-            .bottom-row {
-                grid-template-columns: 1fr;
-                display: grid;
-            }
 
             .metrics,
-            .mini-note {
-                align-items: flex-start;
-                justify-self: start;
-                text-align: left;
-            }
         }
     </style>
 </head>
@@ -521,38 +417,6 @@
                     </div>
                 </div>
 
-                <div class="bottom-row">
-                    <div aria-hidden="true" class="train-chip">
-                        <svg class="train-icon" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 30V15.5C10 12.46 12.46 10 15.5 10H26C31.52 10 36 14.48 36 20V30"
-                                  fill="#FF49C6"/>
-                            <path d="M26 10H16.5C12.91 10 10 12.91 10 16.5V30H38V22C38 15.37 32.63 10 26 10Z"
-                                  fill="#9146FF"/>
-                            <rect fill="#DCC7FF" height="8" rx="2" width="8" x="14" y="14"/>
-                            <rect fill="#DCC7FF" height="6" rx="2" width="9" x="24" y="16"/>
-                            <rect fill="#1B132B" height="7" rx="3.5" width="31" x="8" y="28"/>
-                            <circle cx="15" cy="36" fill="#DCC7FF" r="4"/>
-                            <circle cx="32" cy="36" fill="#DCC7FF" r="4"/>
-                            <circle cx="15" cy="36" fill="#1B132B" r="1.8"/>
-                            <circle cx="32" cy="36" fill="#1B132B" r="1.8"/>
-                            <rect fill="#33D1FF" height="8" rx="2" width="4" x="20.5" y="8"/>
-                            <rect fill="#33D1FF" height="3" rx="1.5" width="6" x="22" y="5"/>
-                        </svg>
-                    </div>
-
-                    <div class="facts">
-                        <div class="fact"><span class="caption">Nåværende</span> <strong id="progressPoints">0</strong>
-                            / <span id="goalPoints">0</span></div>
-                        <div class="fact"><span class="caption">Totalt</span> <strong id="totalPoints">0</strong> poeng
-                        </div>
-                    </div>
-
-                    <div class="mini-note">
-                        <span class="value" id="miniValue">Ingen data</span>
-                        <span class="label" id="miniLabel">Status</span>
-                    </div>
-                </div>
-
             </section>
         </div>
     </div>
@@ -572,12 +436,7 @@
             subtitle: document.getElementById("subtitle"),
             timer: document.getElementById("timer"),
             percent: document.getElementById("percent"),
-            progressFill: document.getElementById("progressFill"),
-            progressPoints: document.getElementById("progressPoints"),
-            goalPoints: document.getElementById("goalPoints"),
-            totalPoints: document.getElementById("totalPoints"),
-            miniValue: document.getElementById("miniValue"),
-            miniLabel: document.getElementById("miniLabel")
+            progressFill: document.getElementById("progressFill")
         };
 
         function formatDuration(ms) {
@@ -665,13 +524,9 @@
             const level = train?.level ?? 0;
             const progress = train?.progress ?? 0;
             const goal = train?.goal ?? 0;
-            const total = train?.total ?? 0;
             const percentage = goal > 0 ? clamp((progress / goal) * 100, 0, 100) : 0;
 
             els.level.textContent = String(level);
-            els.progressPoints.textContent = progress.toLocaleString("nb-NO");
-            els.goalPoints.textContent = goal.toLocaleString("nb-NO");
-            els.totalPoints.textContent = total.toLocaleString("nb-NO");
             els.percent.textContent = `${Math.round(percentage)}%`;
             els.progressFill.style.width = `${percentage}%`;
 
@@ -679,8 +534,6 @@
                 setStatePill("idle", "Venter");
                 els.subtitle.textContent = "Venter på neste tog.";
                 els.timer.textContent = "⏱ --:--";
-                els.miniValue.textContent = "Ingen data";
-                els.miniLabel.textContent = "Status";
                 return;
             }
 
@@ -688,8 +541,6 @@
                 setStatePill("active", "Live");
                 els.subtitle.textContent = "Subscribe, gift eller bruk bits for å ta toget til neste nivå.";
                 els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
-                els.miniValue.textContent = `Nivå ${level}`;
-                els.miniLabel.textContent = "Aktivt tog";
                 return;
             }
 
@@ -697,8 +548,6 @@
                 setStatePill("cooldown", "Cooldown");
                 els.subtitle.textContent = "Toget er ferdig. Neste hypetog kan starte når cooldown er over.";
                 els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
-                els.miniValue.textContent = formatDuration((state.until ?? Date.now()) - Date.now());
-                els.miniLabel.textContent = "Til ny runde";
                 return;
             }
 
@@ -706,16 +555,12 @@
                 setStatePill("ended", "Ferdig");
                 els.subtitle.textContent = "Hypetog avsluttet.";
                 els.timer.textContent = `⏱ ${train.endedAt ? new Date(train.endedAt).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }) : "--:--"}`;
-                els.miniValue.textContent = `${total.toLocaleString("nb-NO")}`;
-                els.miniLabel.textContent = "Sluttpoeng";
                 return;
             }
 
             setStatePill("idle", "Klar");
             els.subtitle.textContent = "Ingen aktiv hypetog akkurat nå.";
             els.timer.textContent = "⏱ --:--";
-            els.miniValue.textContent = "Standby";
-            els.miniLabel.textContent = "Status";
         }
 
         function fetchHypeTrain() {

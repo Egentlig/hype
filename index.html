@@ -187,10 +187,10 @@
         }
 
         .top-row {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            align-items: start;
+            gap: 20px;
         }
 
         .title-wrap {
@@ -213,6 +213,22 @@
             line-height: 1.35;
             color: var(--muted);
             max-width: 430px;
+        }
+
+        .requirements {
+            align-self: center;
+            margin-top: 4px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            font-family: Oswald, Impact, sans-serif;
+            font-size: 23px;
+            line-height: 1;
+            letter-spacing: 0.02em;
+            color: #ffffff;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .metrics {
@@ -381,10 +397,15 @@
                 display: grid;
             }
 
+            .requirements,
             .metrics {
                 align-items: flex-start;
                 justify-self: start;
                 text-align: left;
+            }
+
+            .requirements {
+                white-space: normal;
             }
         }
     </style>
@@ -409,6 +430,8 @@
                         <h1 class="title">Hypetog</h1>
                         <div class="subtitle" id="subtitle">Venter på neste tog.</div>
                     </div>
+
+                    <div class="requirements" id="requirements">--</div>
 
                     <div class="metrics">
                         <div class="timer" id="timer">⏱ --:--</div>
@@ -442,6 +465,7 @@
             stateLabel: document.getElementById("stateLabel"),
             stateText: document.getElementById("stateText"),
             subtitle: document.getElementById("subtitle"),
+            requirements: document.getElementById("requirements"),
             timer: document.getElementById("timer"),
             percent: document.getElementById("percent"),
             progressFill: document.getElementById("progressFill")
@@ -519,6 +543,27 @@
             els.stateText.textContent = text;
         }
 
+        function formatNumber(value) {
+            return value.toLocaleString("nb-NO");
+        }
+
+        function buildRequirementsText(progress, goal) {
+            const remaining = Math.max(0, goal - progress);
+
+            if (goal <= 0) {
+                return '--';
+            }
+
+            if (remaining === 0) {
+                return 'Neste nivå klart';
+            }
+
+            const tier1Subs = Math.ceil(remaining / 500);
+            const subLabel = tier1Subs === 1 ? 'sub' : 'subs';
+
+            return `${tier1Subs} ${subLabel} eller ${formatNumber(remaining)} bits`;
+        }
+
         function render(train) {
             const state = getWidgetState(train);
             applyStateClass(state.mode);
@@ -537,11 +582,13 @@
             els.level.textContent = String(level);
             els.percent.textContent = `${Math.round(percentage)}%`;
             els.progressFill.style.width = `${percentage}%`;
+            els.requirements.textContent = buildRequirementsText(progress, goal);
 
             if (!train) {
                 setStatePill("idle", "Venter");
                 els.subtitle.textContent = "Venter på neste tog.";
                 els.timer.textContent = "⏱ --:--";
+                els.requirements.textContent = "--";
                 return;
             }
 
@@ -556,6 +603,7 @@
                 setStatePill("cooldown", "Cooldown");
                 els.subtitle.textContent = "Toget er ferdig. Neste hypetog kan starte når cooldown er over.";
                 els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
+                els.requirements.textContent = "--";
                 return;
             }
 
@@ -563,12 +611,14 @@
                 setStatePill("ended", "Ferdig");
                 els.subtitle.textContent = "Hypetog avsluttet.";
                 els.timer.textContent = `⏱ ${train.endedAt ? new Date(train.endedAt).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }) : "--:--"}`;
+                els.requirements.textContent = "--";
                 return;
             }
 
             setStatePill("idle", "Klar");
             els.subtitle.textContent = "Ingen aktiv hypetog akkurat nå.";
             els.timer.textContent = "⏱ --:--";
+            els.requirements.textContent = "--";
         }
 
         function fetchHypeTrain() {

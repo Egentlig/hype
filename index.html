@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="https://fonts.googleapis.com/css?family=Oswald:400;500;600;700&display=swap" rel="stylesheet">
+    <title>Hype Train Widget</title>
+    <style>
+        :root {
+            --twitch: #9146ff;
+            --twitch-2: #a970ff;
+            --pink: #ff49c6;
+            --blue: #33d1ff;
+            --bg-1: rgba(9, 8, 18, 0.9);
+            --bg-2: rgba(20, 18, 35, 0.92);
+            --panel: rgba(255, 255, 255, 0.06);
+            --panel-2: rgba(255, 255, 255, 0.09);
+            --text: #ffffff;
+            --muted: rgba(255, 255, 255, 0.72);
+            --soft: rgba(255, 255, 255, 0.4);
+            --success: #35d07f;
+            --warning: #ffcf5a;
+            --danger: #ff667d;
+            --shadow: none;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            background: #ffffff;
+            color: var(--text);
+            overflow: hidden;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .content {
+            width: 820px;
+            padding: 18px 18px 0 18px;
+            display: inline-block;
+        }
+
+        .widget {
+            position: relative;
+            width: 100%;
+            border-radius: 28px;
+            overflow: hidden;
+            background: radial-gradient(circle at 12% 18%, rgba(169, 112, 255, 0.24), transparent 30%),
+            radial-gradient(circle at 90% 15%, rgba(51, 209, 255, 0.18), transparent 24%),
+            linear-gradient(140deg, var(--bg-1), var(--bg-2));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+            transform-origin: top left;
+            transition: opacity 250ms ease, transform 250ms ease, filter 250ms ease;
+        }
+
+        .widget.hidden {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.98);
+            pointer-events: none;
+        }
+
+        .widget::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.04)),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 60%);
+            pointer-events: none;
+        }
+
+        .widget::after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: 27px;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .widget-shell {
+            position: relative;
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            min-height: 176px;
+        }
+
+        .left-rail {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 18px;
+            background: linear-gradient(180deg, rgba(145, 70, 255, 0.96), rgba(110, 40, 230, 0.92));
+        }
+
+        .left-rail::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.35), transparent 40%),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 45%, rgba(0, 0, 0, 0.18));
+            pointer-events: none;
+        }
+
+        .lvl-badge {
+            position: relative;
+            z-index: 1;
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(14, 11, 26, 0.86);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.28);
+            font-family: Oswald, Impact, sans-serif;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .lvl-badge span {
+            font-size: 30px;
+        }
+
+        .rail-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .state-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.13);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .state-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .state-active {
+            color: #fff5b1;
+        }
+
+        .state-cooldown {
+            color: #d4f6ff;
+        }
+
+        .state-ended {
+            color: #ffd0d7;
+        }
+
+        .state-idle {
+            color: #ffffff;
+        }
+
+        .main-panel {
+            position: relative;
+            padding: 20px 22px 18px 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .title-wrap {
+            min-width: 0;
+        }
+
+        .title {
+            margin: 0;
+            font-family: Oswald, Impact, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 36px;
+            line-height: 0.95;
+            text-shadow: 0 2px 16px rgba(0, 0, 0, 0.22);
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            font-size: 15px;
+            line-height: 1.35;
+            color: var(--muted);
+            max-width: 430px;
+        }
+
+        .metrics {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .timer {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            font-weight: 800;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .percent {
+            font-family: Oswald, Impact, sans-serif;
+            font-size: 46px;
+            line-height: 0.9;
+            letter-spacing: 0.02em;
+            text-align: right;
+            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+        }
+
+        .track-wrap {
+            position: relative;
+            padding-top: 4px;
+        }
+
+        .progress-track {
+            position: relative;
+            height: 22px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.34),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .progress-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #9146ff 0%, #b15dff 42%, #ff49c6 76%, #33d1ff 100%);
+            box-shadow: 0 0 30px rgba(145, 70, 255, 0.45),
+            inset 0 0 18px rgba(255, 255, 255, 0.18);
+            transition: width 800ms cubic-bezier(.2, .9, .25, 1);
+        }
+
+        .progress-fill::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.15) 35%, transparent 65%);
+            transform: translateX(-100%);
+            animation: shine 2.8s linear infinite;
+        }
+
+        .progress-markers {
+            position: absolute;
+            inset: 1px 10px 1px 10px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            pointer-events: none;
+            align-items: center;
+        }
+
+        .progress-markers span {
+            justify-self: end;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+        }
+
+        .progress-markers span:first-child {
+            justify-self: start;
+        }
+
+        .bottom-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .train-chip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            min-width: 72px;
+        }
+
+        .train-icon {
+            width: 26px;
+            height: 26px;
+            filter: drop-shadow(0 0 12px rgba(255, 73, 198, 0.38));
+            animation: bob 1.8s ease-in-out infinite;
+        }
+
+        .train-chip::after {
+            content: "";
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            width: 26px;
+            height: 10px;
+            transform: translateY(-50%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.1) 55%, transparent 72%);
+            filter: blur(4px);
+            opacity: 0.85;
+            animation: steam 2.2s ease-out infinite;
+        }
+
+        .facts {
+            min-width: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            align-items: center;
+        }
+
+        .fact {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            line-height: 1;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+        }
+
+        .fact strong {
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .caption {
+            color: var(--soft);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .mini-note {
+            justify-self: end;
+            text-align: right;
+        }
+
+        .mini-note .value {
+            display: block;
+            font-weight: 800;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .mini-note .label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--soft);
+        }
+
+        .widget.cooldown .progress-fill,
+        .widget.ended .progress-fill,
+        .widget.idle .progress-fill {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.12));
+            box-shadow: none;
+        }
+
+        .widget.cooldown .left-rail {
+            background: linear-gradient(180deg, rgba(37, 80, 140, 0.92), rgba(25, 48, 92, 0.96));
+        }
+
+        .widget.ended .left-rail,
+        .widget.idle .left-rail {
+            background: linear-gradient(180deg, rgba(74, 74, 104, 0.92), rgba(34, 34, 49, 0.96));
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(240%);
+            }
+        }
+
+        @keyframes sweep {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(430%);
+            }
+        }
+
+        @keyframes bob {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-2px);
+            }
+        }
+
+        @keyframes steam {
+            0% {
+                transform: translateY(-50%) scale(0.8);
+                opacity: 0.35;
+            }
+            50% {
+                transform: translate(5px, -13px) scale(1.05);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translate(12px, -20px) scale(1.28);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .content {
+                width: 100%;
+                padding: 12px;
+            }
+
+            .widget-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .left-rail {
+                gap: 16px;
+            }
+
+            .top-row,
+            .bottom-row {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .metrics,
+            .mini-note {
+                align-items: flex-start;
+                justify-self: start;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+    <div class="widget idle hidden" id="widget">
+        <div class="widget-shell">
+            <aside class="left-rail">
+                <div class="lvl-badge">LVL <span id="level">0</span></div>
+                <div class="rail-copy">
+                    <div class="state-label state-idle" id="stateLabel">
+                        <span class="state-dot"></span>
+                        <span id="stateText">Venter</span>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="main-panel">
+                <div class="top-row">
+                    <div class="title-wrap">
+                        <h1 class="title">Hype Train</h1>
+                        <div class="subtitle" id="subtitle">Venter på neste tog.</div>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="timer" id="timer">⏱ --:--</div>
+                        <div class="percent" id="percent">0%</div>
+                    </div>
+                </div>
+
+                <div class="track-wrap">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill"></div>
+                        <div class="progress-markers">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-row">
+                    <div aria-hidden="true" class="train-chip">
+                        <svg class="train-icon" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 30V15.5C10 12.46 12.46 10 15.5 10H26C31.52 10 36 14.48 36 20V30"
+                                  fill="#FF49C6"/>
+                            <path d="M26 10H16.5C12.91 10 10 12.91 10 16.5V30H38V22C38 15.37 32.63 10 26 10Z"
+                                  fill="#9146FF"/>
+                            <rect fill="#DCC7FF" height="8" rx="2" width="8" x="14" y="14"/>
+                            <rect fill="#DCC7FF" height="6" rx="2" width="9" x="24" y="16"/>
+                            <rect fill="#1B132B" height="7" rx="3.5" width="31" x="8" y="28"/>
+                            <circle cx="15" cy="36" fill="#DCC7FF" r="4"/>
+                            <circle cx="32" cy="36" fill="#DCC7FF" r="4"/>
+                            <circle cx="15" cy="36" fill="#1B132B" r="1.8"/>
+                            <circle cx="32" cy="36" fill="#1B132B" r="1.8"/>
+                            <rect fill="#33D1FF" height="8" rx="2" width="4" x="20.5" y="8"/>
+                            <rect fill="#33D1FF" height="3" rx="1.5" width="6" x="22" y="5"/>
+                        </svg>
+                    </div>
+
+                    <div class="facts">
+                        <div class="fact"><span class="caption">Nåværende</span> <strong id="progressPoints">0</strong>
+                            / <span id="goalPoints">0</span></div>
+                        <div class="fact"><span class="caption">Totalt</span> <strong id="totalPoints">0</strong> poeng
+                        </div>
+                    </div>
+
+                    <div class="mini-note">
+                        <span class="value" id="miniValue">Ingen data</span>
+                        <span class="label" id="miniLabel">Status</span>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+</div>
+
+<script type="application/javascript">
+    document.addEventListener("DOMContentLoaded", () => {
+        const API_URL = "https://api.j4d.dev/chronoguider/hype-train?broadcasterUserId=885542539";
+
+        let hypeTrain = null;
+
+        const els = {
+            widget: document.getElementById("widget"),
+            level: document.getElementById("level"),
+            stateLabel: document.getElementById("stateLabel"),
+            stateText: document.getElementById("stateText"),
+            subtitle: document.getElementById("subtitle"),
+            timer: document.getElementById("timer"),
+            percent: document.getElementById("percent"),
+            progressFill: document.getElementById("progressFill"),
+            progressPoints: document.getElementById("progressPoints"),
+            goalPoints: document.getElementById("goalPoints"),
+            totalPoints: document.getElementById("totalPoints"),
+            miniValue: document.getElementById("miniValue"),
+            miniLabel: document.getElementById("miniLabel")
+        };
+
+        function formatDuration(ms) {
+            if (ms == null || Number.isNaN(ms)) return "--:--";
+
+            const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            if (hours > 0) {
+                return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+            }
+
+            return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function getWidgetState(train) {
+            if (!train) {
+                return {mode: "idle"};
+            }
+
+            if (train.hiddenAt) {
+                return {mode: "hidden"};
+            }
+
+            const now = Date.now();
+            const expiresAt = train.expiresAt ? new Date(train.expiresAt).getTime() : null;
+            const endedAt = train.endedAt ? new Date(train.endedAt).getTime() : null;
+            const cooldownEndsAt = train.cooldownEndsAt ? new Date(train.cooldownEndsAt).getTime() : null;
+
+            const active = !endedAt && (!expiresAt || expiresAt > now);
+            if (active) {
+                return {mode: "active", until: expiresAt};
+            }
+
+            if (cooldownEndsAt && cooldownEndsAt > now) {
+                return {mode: "cooldown", until: cooldownEndsAt};
+            }
+
+            if (endedAt) {
+                return {mode: "ended", until: endedAt};
+            }
+
+            return {mode: "idle"};
+        }
+
+        function applyStateClass(mode) {
+            els.widget.classList.remove("active", "cooldown", "ended", "idle", "hidden");
+
+            if (mode === "hidden") {
+                els.widget.classList.add("hidden");
+                return;
+            }
+
+            els.widget.classList.add(mode);
+        }
+
+        function setStatePill(mode, text) {
+            const classMap = {
+                active: "state-active",
+                cooldown: "state-cooldown",
+                ended: "state-ended",
+                idle: "state-idle"
+            };
+
+            els.stateLabel.className = `state-label ${classMap[mode] ?? "state-idle"}`;
+            els.stateText.textContent = text;
+        }
+
+        function render(train) {
+            const state = getWidgetState(train);
+            applyStateClass(state.mode);
+
+            if (state.mode === "hidden") {
+                return;
+            }
+
+            els.widget.classList.remove("hidden");
+
+            const level = train?.level ?? 0;
+            const progress = train?.progress ?? 0;
+            const goal = train?.goal ?? 0;
+            const total = train?.total ?? 0;
+            const percentage = goal > 0 ? clamp((progress / goal) * 100, 0, 100) : 0;
+
+            els.level.textContent = String(level);
+            els.progressPoints.textContent = progress.toLocaleString("nb-NO");
+            els.goalPoints.textContent = goal.toLocaleString("nb-NO");
+            els.totalPoints.textContent = total.toLocaleString("nb-NO");
+            els.percent.textContent = `${Math.round(percentage)}%`;
+            els.progressFill.style.width = `${percentage}%`;
+
+            if (!train) {
+                setStatePill("idle", "Venter");
+                els.subtitle.textContent = "Venter på neste tog.";
+                els.timer.textContent = "⏱ --:--";
+                els.miniValue.textContent = "Ingen data";
+                els.miniLabel.textContent = "Status";
+                return;
+            }
+
+            if (state.mode === "active") {
+                setStatePill("active", "Live");
+                els.subtitle.textContent = "Sub, gave-abonnement eller Bits for å presse toget videre til neste nivå.";
+                els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
+                els.miniValue.textContent = `Nivå ${level}`;
+                els.miniLabel.textContent = "Aktivt tog";
+                return;
+            }
+
+            if (state.mode === "cooldown") {
+                setStatePill("cooldown", "Cooldown");
+                els.subtitle.textContent = "Toget er ferdig. Neste Hype Train kan starte når cooldown er over.";
+                els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
+                els.miniValue.textContent = formatDuration((state.until ?? Date.now()) - Date.now());
+                els.miniLabel.textContent = "Til ny runde";
+                return;
+            }
+
+            if (state.mode === "ended") {
+                setStatePill("ended", "Ferdig");
+                els.subtitle.textContent = "Dette Hype Train er avsluttet.";
+                els.timer.textContent = `⏱ ${train.endedAt ? new Date(train.endedAt).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }) : "--:--"}`;
+                els.miniValue.textContent = `${total.toLocaleString("nb-NO")}`;
+                els.miniLabel.textContent = "Sluttpoeng";
+                return;
+            }
+
+            setStatePill("idle", "Klar");
+            els.subtitle.textContent = "Ingen aktiv hype train akkurat nå.";
+            els.timer.textContent = "⏱ --:--";
+            els.miniValue.textContent = "Standby";
+            els.miniLabel.textContent = "Status";
+        }
+
+        function fetchHypeTrain() {
+            fetch(API_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    return response.json();
+                })
+                .then(data => {
+                    hypeTrain = data;
+                    render(hypeTrain);
+                })
+                .catch(error => {
+                    console.error("Kunne ikke hente hype train:", error);
+                    render(hypeTrain);
+                });
+        }
+
+        fetchHypeTrain();
+        setInterval(fetchHypeTrain, 3000);
+        setInterval(() => render(hypeTrain), 1000);
+    });
+</script>
+</body>
+</html>

@@ -686,7 +686,7 @@
 
             if (state.mode === "active") {
                 setStatePill("active", "Live");
-                els.subtitle.textContent = "Sub, gave-abonnement eller Bits for å presse toget videre til neste nivå.";
+                els.subtitle.textContent = "Subscribe, gift eller bruk bits for å ta toget til neste nivå.";
                 els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
                 els.miniValue.textContent = `Nivå ${level}`;
                 els.miniLabel.textContent = "Aktivt tog";
@@ -695,7 +695,7 @@
 
             if (state.mode === "cooldown") {
                 setStatePill("cooldown", "Cooldown");
-                els.subtitle.textContent = "Toget er ferdig. Neste Hype Train kan starte når cooldown er over.";
+                els.subtitle.textContent = "Toget er ferdig. Neste hypetog kan starte når cooldown er over.";
                 els.timer.textContent = `⏱ ${formatDuration((state.until ?? Date.now()) - Date.now())}`;
                 els.miniValue.textContent = formatDuration((state.until ?? Date.now()) - Date.now());
                 els.miniLabel.textContent = "Til ny runde";
@@ -704,7 +704,7 @@
 
             if (state.mode === "ended") {
                 setStatePill("ended", "Ferdig");
-                els.subtitle.textContent = "Dette Hype Train er avsluttet.";
+                els.subtitle.textContent = "Hypetog avsluttet.";
                 els.timer.textContent = `⏱ ${train.endedAt ? new Date(train.endedAt).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }) : "--:--"}`;
                 els.miniValue.textContent = `${total.toLocaleString("nb-NO")}`;
                 els.miniLabel.textContent = "Sluttpoeng";
@@ -712,7 +712,7 @@
             }
 
             setStatePill("idle", "Klar");
-            els.subtitle.textContent = "Ingen aktiv hype train akkurat nå.";
+            els.subtitle.textContent = "Ingen aktiv hypetog akkurat nå.";
             els.timer.textContent = "⏱ --:--";
             els.miniValue.textContent = "Standby";
             els.miniLabel.textContent = "Status";
